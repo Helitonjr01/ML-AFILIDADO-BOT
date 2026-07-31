@@ -2,18 +2,32 @@ import sharp from "sharp";
 import fs from "fs";
 import path from "path";
 
-export async function gerarStory() {
+interface Produto {
+  id: string;
+  titulo: string;
+  preco: number;
+  precoAntigo: number;
+  desconto: number;
+  imagem: string;
+  link: string;
+}
+
+export async function gerarStory(produto: Produto): Promise<string> {
   const width = 1080;
   const height = 1920;
 
-  const output = path.join(process.cwd(), "stories", `story-${Date.now()}.jpg`);
+  const output = path.join(
+    process.cwd(),
+    "stories",
+    `story-${produto.id}-${Date.now()}.jpg`,
+  );
 
   fs.mkdirSync(path.dirname(output), { recursive: true });
 
-const imagemProduto = await fetch(produto.imagem)
-  .then(r => r.arrayBuffer());
-
-const bufferProduto = Buffer.from(imagemProduto);
+  // Baixa a imagem do produto
+  const response = await fetch(produto.imagem);
+  const arrayBuffer = await response.arrayBuffer();
+  const bufferProduto = Buffer.from(arrayBuffer);
 
   const svg = `
   <svg width="1080" height="1920">
@@ -21,33 +35,33 @@ const bufferProduto = Buffer.from(imagemProduto);
 
     <rect x="60" y="60" width="260" height="70" rx="20" fill="#DC2626"/>
     <text x="95" y="108" font-size="34" fill="white" font-family="Arial">
-      OFERTA DO DIA
+      ACHADO DO DIA
     </text>
 
-    <text x="60" y="1180" font-size="58" fill="white" font-family="Arial">
-      Notebook Gamer Dell G15
+    <text x="60" y="1180" font-size="54" fill="white" font-family="Arial">
+      ${produto.titulo}
     </text>
 
-    <text x="60" y="1280" font-size="42" fill="#9CA3AF" font-family="Arial">
-      De R$ 5.299,00
+    <text x="60" y="1280" font-size="40" fill="#9CA3AF" font-family="Arial">
+      De R$ ${produto.precoAntigo.toFixed(2)}
     </text>
 
     <text x="60" y="1390" font-size="92" fill="#22C55E" font-family="Arial">
-      R$ 4.299,00
+      R$ ${produto.preco.toFixed(2)}
     </text>
 
     <rect x="60" y="1450" width="220" height="70" rx="20" fill="#16A34A"/>
     <text x="105" y="1498" font-size="34" fill="white" font-family="Arial">
-      19% OFF
+      ${produto.desconto}% OFF
     </text>
 
     <rect x="60" y="1620" width="960" height="110" rx="30" fill="#22C55E"/>
-    <text x="230" y="1690" font-size="46" fill="white" font-family="Arial">
-      COMPRAR COM DESCONTO
+    <text x="250" y="1690" font-size="46" fill="white" font-family="Arial">
+      COMPRAR AGORA
     </text>
 
-    <text x="60" y="1820" font-size="34" fill="#D1D5DB" font-family="Arial">
-      Link de afiliado na bio
+    <text x="60" y="1820" font-size="32" fill="#D1D5DB" font-family="Arial">
+      Link na bio
     </text>
   </svg>
   `;
@@ -62,7 +76,7 @@ const bufferProduto = Buffer.from(imagemProduto);
   })
     .composite([
       {
-        input: produto,
+        input: bufferProduto,
         top: 220,
         left: 140,
       },
